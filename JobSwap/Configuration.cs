@@ -1,15 +1,17 @@
 ﻿using Dalamud.Configuration;
 using System;
+using System.Collections.Generic;
 
-namespace SamplePlugin;
+namespace JobSwap;
 
 [Serializable]
 public class Configuration : IPluginConfiguration
 {
     public int Version { get; set; } = 0;
 
-    public bool IsConfigWindowMovable { get; set; } = true;
-    public bool SomePropertyToBeSavedAndWithADefault { get; set; } = true;
+    public List<int> GearsetNumbers { get; set; } = [0];
+    public int RequestedLevel { get; set; } = 100;
+    public bool IsRunning { get; set; } = false;
 
     // The below exists just to make saving less cumbersome
     public void Save()
