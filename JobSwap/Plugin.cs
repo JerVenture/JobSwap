@@ -17,6 +17,7 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] internal static IPlayerState PlayerState { get; private set; } = null!;
     [PluginService] internal static IDataManager DataManager { get; private set; } = null!;
     [PluginService] internal static IPluginLog Log { get; private set; } = null!;
+    [PluginService] internal static IFramework Framework { get; private set; } = null!;
 
     private const string CommandName = "/jobSwap";
 
@@ -30,6 +31,7 @@ public sealed class Plugin : IDalamudPlugin
         ECommonsMain.Init(PluginInterface, this);
         AutoDutyIPC = new AutoDutyIPC();
 
+        Framework.Update += OnUpdate;
         Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
         PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
 
@@ -40,6 +42,7 @@ public sealed class Plugin : IDalamudPlugin
     {
         ECommonsMain.Dispose();
 
+        Framework.Update -= OnUpdate;
         PluginInterface.UiBuilder.Draw -= WindowSystem.Draw;
         
         WindowSystem.RemoveAllWindows();
@@ -48,5 +51,10 @@ public sealed class Plugin : IDalamudPlugin
     private void OnCommand(string command, string args)
     {
 
+    }
+
+    private void OnUpdate(IFramework framework)
+    {
+        
     }
 }
