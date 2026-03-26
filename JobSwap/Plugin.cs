@@ -4,6 +4,7 @@ using Dalamud.Plugin;
 using System.IO;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
+using ECommons;
 
 namespace JobSwap;
 
@@ -24,6 +25,8 @@ public sealed class Plugin : IDalamudPlugin
     public readonly WindowSystem WindowSystem = new("JobSwap");
     public Plugin()
     {
+        ECommonsMain.Init(PluginInterface, this);
+
         Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
         PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
 
@@ -32,6 +35,8 @@ public sealed class Plugin : IDalamudPlugin
 
     public void Dispose()
     {
+        ECommonsMain.Dispose();
+
         PluginInterface.UiBuilder.Draw -= WindowSystem.Draw;
         
         WindowSystem.RemoveAllWindows();
