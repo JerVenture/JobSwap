@@ -24,6 +24,7 @@ public sealed class Plugin : IDalamudPlugin
 
     public Configuration Configuration { get; init; }
     private MainWindow MainWindow { get; init; } = null!;
+    private ConfigWindow ConfigWindow { get; init; } = null!;
     
     private AutoDutyIPC AutoDutyIPC;
 
@@ -34,13 +35,19 @@ public sealed class Plugin : IDalamudPlugin
         ECommonsMain.Init(PluginInterface, this);
         AutoDutyIPC = new AutoDutyIPC();
 
-        Framework.Update += OnUpdate;
         Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
-        PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
-        PluginInterface.UiBuilder.OpenMainUi += () => MainWindow.Toggle();
-
+        
         MainWindow = new MainWindow(this);
         WindowSystem.AddWindow(MainWindow);
+
+        ConfigWindow = new ConfigWindow(this);
+        WindowSystem.AddWindow(ConfigWindow);  
+        
+        Framework.Update += OnUpdate;
+ 
+        PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
+        PluginInterface.UiBuilder.OpenMainUi += () => MainWindow.Toggle();
+        PluginInterface.UiBuilder.OpenConfigUi += () => ConfigWindow.Toggle();
 
         Log.Information("JobSwap has started");
     }
@@ -52,6 +59,7 @@ public sealed class Plugin : IDalamudPlugin
         Framework.Update -= OnUpdate;
         PluginInterface.UiBuilder.Draw -= WindowSystem.Draw;
         PluginInterface.UiBuilder.OpenMainUi -= () => MainWindow.Toggle();
+        PluginInterface.UiBuilder.OpenConfigUi -= () => ConfigWindow.Toggle();
         
         WindowSystem.RemoveAllWindows();
     }
