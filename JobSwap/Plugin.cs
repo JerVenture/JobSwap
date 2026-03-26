@@ -23,6 +23,7 @@ public sealed class Plugin : IDalamudPlugin
     private const string CommandName = "/jobSwap";
 
     public Configuration Configuration { get; init; }
+    private MainWindow MainWindow { get; init; } = null!;
     
     private AutoDutyIPC AutoDutyIPC;
 
@@ -36,6 +37,10 @@ public sealed class Plugin : IDalamudPlugin
         Framework.Update += OnUpdate;
         Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
         PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
+        PluginInterface.UiBuilder.OpenMainUi += () => MainWindow.Toggle();
+
+        MainWindow = new MainWindow(this);
+        WindowSystem.AddWindow(MainWindow);
 
         Log.Information("JobSwap has started");
     }
@@ -46,6 +51,7 @@ public sealed class Plugin : IDalamudPlugin
 
         Framework.Update -= OnUpdate;
         PluginInterface.UiBuilder.Draw -= WindowSystem.Draw;
+        PluginInterface.UiBuilder.OpenMainUi -= () => MainWindow.Toggle();
         
         WindowSystem.RemoveAllWindows();
     }
