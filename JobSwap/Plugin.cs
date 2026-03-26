@@ -18,6 +18,7 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] internal static IDataManager DataManager { get; private set; } = null!;
     [PluginService] internal static IPluginLog Log { get; private set; } = null!;
     [PluginService] internal static IFramework Framework { get; private set; } = null!;
+    [PluginService] internal static IObjectTable ObjectTable { get; private set; } = null!;
 
     private const string CommandName = "/jobSwap";
 
@@ -25,6 +26,7 @@ public sealed class Plugin : IDalamudPlugin
     
     private AutoDutyIPC AutoDutyIPC;
 
+    private int queueIndex = 0;
     public readonly WindowSystem WindowSystem = new("JobSwap");
     public Plugin()
     {
@@ -55,6 +57,30 @@ public sealed class Plugin : IDalamudPlugin
 
     private void OnUpdate(IFramework framework)
     {
-        
+        if (Configuration.IsRunning == true)
+        {
+            if (AutoDutyIPC.IsStopped() == true)
+            {
+                if (ObjectTable.LocalPlayer?.Level >= Configuration.RequestedLevel)
+                {
+                    if (queueIndex < Configuration.GearsetNumbers.Count)
+                    {
+                        int gearset = Configuration.GearsetNumbers[queueIndex];
+                        CommandManager.ProcessCommand($"/gearset change {gearset}");
+                        AutoDutyIPC.Start(true);
+                        queueIndex++;
+                    }
+                    else
+                    {
+                        Configuration.IsRunning = false;
+                        Configuration.Save();
+                    }
+                }
+                else return;
+            }
+            else return;
+        }
+        else return;
     }
+
 }
