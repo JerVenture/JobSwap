@@ -12,6 +12,7 @@ public class MainWindow : Window
 
     public override void Draw()
     {
+        ImGui.Text($"Classes set to level to: {Plugin.Configuration.RequestedLevel}");
         ImGui.Text("You currently have these gearsets set to level:");
         for (int i = 0; i < Plugin.Configuration.GearsetNumbers.Count; i++)
         {
