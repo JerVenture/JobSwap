@@ -21,11 +21,14 @@ public sealed class Plugin : IDalamudPlugin
     private const string CommandName = "/jobSwap";
 
     public Configuration Configuration { get; init; }
+    
+    private AutoDutyIPC AutoDutyIPC;
 
     public readonly WindowSystem WindowSystem = new("JobSwap");
     public Plugin()
     {
         ECommonsMain.Init(PluginInterface, this);
+        AutoDutyIPC = new AutoDutyIPC();
 
         Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
         PluginInterface.UiBuilder.Draw += WindowSystem.Draw;

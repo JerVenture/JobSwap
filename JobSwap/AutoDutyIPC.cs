@@ -1,4 +1,5 @@
 using ECommons.EzIpcManager;
+using System;
 
 namespace JobSwap;
 
@@ -10,7 +11,7 @@ public class AutoDutyIPC
     }
 
     [EzIPC]
-    public Action<bool> Start;
+    public Action<bool> Start = null!;
     [EzIPC]
-    public Func<bool> IsStopped;
+    public Func<bool> IsStopped = null!;
 }
