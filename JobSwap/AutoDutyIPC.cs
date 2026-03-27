@@ -13,5 +13,9 @@ public class AutoDutyIPC
     [EzIPC]
     public Action<bool> Start = null!;
     [EzIPC]
+    public Action Stop = null!;
+    [EzIPC]
     public Func<bool> IsStopped = null!;
+    [EzIPC]
+    public Action<string, object> SetConfig = null!;
 }

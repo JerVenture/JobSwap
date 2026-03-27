@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Windowing;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
-using System.Linq;
+using System;
 
 namespace JobSwap;
 
@@ -27,11 +27,14 @@ public class ConfigWindow : Window
         unsafe
         {
             var gearsetModule = RaptureGearsetModule.Instance();
+            if (gearsetModule == null) return;
 
-            for (int i = 0; gearsetModule->GetGearset(i) != null; i++)
+            for (int i = 0; i < 100 && gearsetModule->GetGearset(i) != null; i++)
             {
                 var entry = gearsetModule->GetGearset(i);
-                ClassList.Add($"{i + 1} - {entry->Name.ToString()}");
+                if (entry == null) continue;
+                if (entry->Name[0] == 0) continue; // empty slot, skip it
+                ClassList.Add($"{i + 1} - {System.Text.Encoding.UTF8.GetString(entry->Name).TrimEnd('\0')}");
             }
         }
 

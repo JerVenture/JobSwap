@@ -5,6 +5,7 @@ using System.IO;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
 using ECommons;
+using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 
 namespace JobSwap;
 
@@ -20,15 +21,20 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] internal static IFramework Framework { get; private set; } = null!;
     [PluginService] internal static IObjectTable ObjectTable { get; private set; } = null!;
 
-    private const string CommandName = "/jobSwap";
+    private const string CommandName = "/jobswap";
+    public void ToggleConfigUi() => ConfigWindow.Toggle();
 
     public Configuration Configuration { get; init; }
     private MainWindow MainWindow { get; init; } = null!;
     private ConfigWindow ConfigWindow { get; init; } = null!;
     
     private AutoDutyIPC AutoDutyIPC;
+    public void StopAutoDuty() => AutoDutyIPC.Stop();
 
     private int queueIndex = 0;
+    private double timeSinceLastCheck = 0;
+    private double swapDelay = 0;
+    private double startDelay = 0;
     public readonly WindowSystem WindowSystem = new("JobSwap");
     public Plugin()
     {
@@ -49,6 +55,11 @@ public sealed class Plugin : IDalamudPlugin
         PluginInterface.UiBuilder.OpenMainUi += () => MainWindow.Toggle();
         PluginInterface.UiBuilder.OpenConfigUi += () => ConfigWindow.Toggle();
 
+        CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
+        {
+            HelpMessage = "Opens the JobSwap window"
+        });
+
         Log.Information("JobSwap has started");
     }
 
@@ -60,41 +71,82 @@ public sealed class Plugin : IDalamudPlugin
         PluginInterface.UiBuilder.Draw -= WindowSystem.Draw;
         PluginInterface.UiBuilder.OpenMainUi -= () => MainWindow.Toggle();
         PluginInterface.UiBuilder.OpenConfigUi -= () => ConfigWindow.Toggle();
+
+        CommandManager.RemoveHandler(CommandName);
         
         WindowSystem.RemoveAllWindows();
     }
 
     private void OnCommand(string command, string args)
     {
-
+        MainWindow.Toggle();
     }
 
-    private void OnUpdate(IFramework framework)
+    public void StartQueue()
     {
-        if (Configuration.IsRunning == true)
-        {
-            if (AutoDutyIPC.IsStopped() == true)
-            {
-                if (ObjectTable.LocalPlayer?.Level >= Configuration.RequestedLevel)
-                {
-                    if (queueIndex < Configuration.GearsetNumbers.Count)
-                    {
-                        int gearset = Configuration.GearsetNumbers[queueIndex];
-                        CommandManager.ProcessCommand($"/gearset change {gearset}");
-                        AutoDutyIPC.Start(true);
-                        queueIndex++;
-                    }
-                    else
-                    {
-                        Configuration.IsRunning = false;
-                        Configuration.Save();
-                    }
-                }
-                else return;
-            }
-            else return;
-        }
-        else return;
+        queueIndex = 0;
+        timeSinceLastCheck = 14.5;
+        Configuration.IsRunning = true;
+        Configuration.Save();
+        swapDelay = 0;
+        startDelay = 0;
     }
+
+private void OnUpdate(IFramework framework)
+{
+    if (!Configuration.IsRunning) return;
+    if (Configuration.GearsetNumbers.Count == 0) return;
+
+    if (startDelay > 0)
+    {
+        startDelay -= framework.UpdateDelta.TotalSeconds;
+        if (startDelay <= 0)
+        {
+            AutoDutyIPC.Start(true);
+            AutoDutyIPC.SetConfig("LoopTimes", "99");
+        }
+        return;
+    }
+
+    if (swapDelay > 0)
+    {
+        swapDelay -= framework.UpdateDelta.TotalSeconds;
+        if (swapDelay <= 0)
+        {
+            if (ObjectTable.LocalPlayer?.Level >= Configuration.RequestedLevel)
+            {
+                queueIndex++;
+                if (queueIndex >= Configuration.GearsetNumbers.Count)
+                {
+                    Configuration.IsRunning = false;
+                    Configuration.Save();
+                    return;
+                }
+            }
+            int gearset = Configuration.GearsetNumbers[queueIndex];
+            unsafe
+            {
+                var gearsetModule = RaptureGearsetModule.Instance();
+                gearsetModule->EquipGearset(gearset);
+            }
+            startDelay = 5;
+        }
+        return;
+    }
+
+    timeSinceLastCheck += framework.UpdateDelta.TotalSeconds;
+    if (timeSinceLastCheck < 15) return;
+    timeSinceLastCheck = 0;
+
+    if (!AutoDutyIPC.IsStopped()) return;
+
+    int currentGearset = Configuration.GearsetNumbers[queueIndex];
+    unsafe
+    {
+        var gearsetModule = RaptureGearsetModule.Instance();
+        gearsetModule->EquipGearset(currentGearset);
+    }
+    swapDelay = 5;
+}
 
 }
