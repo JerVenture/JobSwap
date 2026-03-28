@@ -130,18 +130,23 @@ private void OnUpdate(IFramework framework)
                 Log.Information($"Level met, advancing queue to index: {queueIndex}");
                 if (queueIndex >= Configuration.GearsetNumbers.Count)
                 {
+                    AutoDutyIPC.SetConfig("StopLevel", "False");
                     Configuration.IsRunning = false;
                     Configuration.Save();
                     return;
                 }
+                int gearset = Configuration.GearsetNumbers[queueIndex];
+                unsafe
+                {
+                    var gearsetModule = RaptureGearsetModule.Instance();
+                    gearsetModule->EquipGearset(gearset);
+                }
+                swapDelay = 5;
             }
-            int gearset = Configuration.GearsetNumbers[queueIndex];
-            unsafe
+            else
             {
-                var gearsetModule = RaptureGearsetModule.Instance();
-                gearsetModule->EquipGearset(gearset);
+                startDelay = 5;        
             }
-            startDelay = 5;
         }
         return;
     }
