@@ -95,5 +95,10 @@ public class ConfigWindow : Window
             Plugin.Configuration.Save();
         }
 
+        if (ImGui.Checkbox("Start Autoretainer multi mode on completion?", ref Plugin.Configuration.EnableARMultiMode))
+        {
+            Plugin.Configuration.Save();
+        }
+
     }
 }

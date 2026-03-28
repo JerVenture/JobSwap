@@ -12,6 +12,7 @@ public class Configuration : IPluginConfiguration
     public List<int> GearsetNumbers { get; set; } = [];
     public int RequestedLevel { get; set; } = 100;
     public bool IsRunning { get; set; } = false;
+    public bool EnableARMultiMode = false;
 
     // The below exists just to make saving less cumbersome
     public void Save()
