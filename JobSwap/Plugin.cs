@@ -137,6 +137,7 @@ private void OnUpdate(IFramework framework)
                 if (queueIndex >= Configuration.GearsetNumbers.Count)
                 {
                     AutoDutyIPC.SetConfig("StopLevel", "False");
+                    AutoDutyIPC.SetConfig("TerminationMethodEnum", "Do_Nothing");
                     Configuration.IsRunning = false;
                     Configuration.Save();
                     return;
