@@ -102,6 +102,7 @@ private void OnUpdate(IFramework framework)
         startDelay -= framework.UpdateDelta.TotalSeconds;
         if (startDelay <= 0)
         {
+            Log.Information($"StartDelay fired, starting Autoduty on queueIndex: {queueIndex}, gearset: {Configuration.GearsetNumbers[queueIndex]}");
             AutoDutyIPC.Start(true);
             AutoDutyIPC.SetConfig("LoopTimes", "99");
         }
@@ -113,9 +114,11 @@ private void OnUpdate(IFramework framework)
         swapDelay -= framework.UpdateDelta.TotalSeconds;
         if (swapDelay <= 0)
         {
+            Log.Information($"SwapDelay fired - level: {ObjectTable.LocalPlayer?.Level}, target: {Configuration.RequestedLevel}, queueIndex: {queueIndex}");
             if (ObjectTable.LocalPlayer?.Level >= Configuration.RequestedLevel)
             {
                 queueIndex++;
+                Log.Information($"Level met, advancing queue to index: {queueIndex}");
                 if (queueIndex >= Configuration.GearsetNumbers.Count)
                 {
                     Configuration.IsRunning = false;
@@ -137,10 +140,12 @@ private void OnUpdate(IFramework framework)
     timeSinceLastCheck += framework.UpdateDelta.TotalSeconds;
     if (timeSinceLastCheck < 15) return;
     timeSinceLastCheck = 0;
+    Log.Information($"Timer fired - IsStopped: {AutoDutyIPC.IsStopped()}, queueIndex: {queueIndex}");
 
     if (!AutoDutyIPC.IsStopped()) return;
 
     int currentGearset = Configuration.GearsetNumbers[queueIndex];
+    Log.Information($"Initial equip - queueIndex: {queueIndex}, gearset: {currentGearset}");
     unsafe
     {
         var gearsetModule = RaptureGearsetModule.Instance();
