@@ -29,7 +29,16 @@ public sealed class Plugin : IDalamudPlugin
     private ConfigWindow ConfigWindow { get; init; } = null!;
     
     private AutoDutyIPC AutoDutyIPC;
-    public void StopAutoDuty() => AutoDutyIPC.Stop();
+    public void StopAutoDuty()
+    {
+        AutoDutyIPC.Stop();
+        AutoDutyIPC.SetConfig("StopLevel", "False");
+    }
+    public void SetAutodutyStopLevel(int level)
+    {
+        AutoDutyIPC.SetConfig("StopLevel", "True");
+        AutoDutyIPC.SetConfig("StopLevelInt", level.ToString());
+    }
 
     private int queueIndex = 0;
     private double timeSinceLastCheck = 0;

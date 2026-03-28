@@ -36,6 +36,7 @@ public class MainWindow : Window
 
         if (ImGui.Button("Start Leveling"))
         {
+            Plugin.SetAutodutyStopLevel(Plugin.Configuration.RequestedLevel);
             Plugin.StartQueue();
         }
         
