@@ -1,8 +1,6 @@
 using Dalamud.Interface.Windowing;
 using Dalamud.Bindings.ImGui;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
-using System.Collections.Generic;
-using System;
 
 namespace JobSwap;
 public class MainWindow : Window 
