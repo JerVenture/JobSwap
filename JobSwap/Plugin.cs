@@ -112,6 +112,11 @@ private void OnUpdate(IFramework framework)
         startDelay -= framework.UpdateDelta.TotalSeconds;
         if (startDelay <= 0)
         {
+            if (Configuration.EnableARMultiMode && queueIndex == Configuration.GearsetNumbers.Count - 1)
+                {
+                    AutoDutyIPC.SetConfig("TerminationMethodEnum", "Start_AR_Multi_Mode");
+                }
+                
             Log.Information($"StartDelay fired, starting Autoduty on queueIndex: {queueIndex}, gearset: {Configuration.GearsetNumbers[queueIndex]}");
             AutoDutyIPC.Start(true);
             AutoDutyIPC.SetConfig("LoopTimes", "99");
