@@ -100,77 +100,71 @@ public sealed class Plugin : IDalamudPlugin
         startDelay = 0;
     }
 
-private void OnUpdate(IFramework framework)
-{
-    if (!Configuration.IsRunning) return;
-    if (Configuration.GearsetNumbers.Count == 0) return;
-
-    if (startDelay > 0)
+    private void OnUpdate(IFramework framework)
     {
-        startDelay -= framework.UpdateDelta.TotalSeconds;
-        if (startDelay <= 0)
+        if (!Configuration.IsRunning) return;
+        if (Configuration.GearsetNumbers.Count == 0) return;
+
+        if (startDelay > 0)
         {
-            if (Configuration.EnableARMultiMode && queueIndex == Configuration.GearsetNumbers.Count - 1)
-                {
-                    AutoDutyIPC.SetConfig("TerminationMethodEnum", "Start_AR_Multi_Mode");
-                }
+            startDelay -= framework.UpdateDelta.TotalSeconds;
+            if (startDelay <= 0)
+            {
+                if (Configuration.EnableARMultiMode && queueIndex == Configuration.GearsetNumbers.Count - 1)
+                    {
+                        AutoDutyIPC.SetConfig("TerminationMethodEnum", "Start_AR_Multi_Mode");
+                    }
                 
-            Log.Information($"StartDelay fired, starting Autoduty on queueIndex: {queueIndex}, gearset: {Configuration.GearsetNumbers[queueIndex]}");
-            AutoDutyIPC.Start(true);
-            AutoDutyIPC.SetConfig("LoopTimes", "99");
+                AutoDutyIPC.SetConfig("LoopTimes", "99");
+            }
+            return;
         }
-        return;
-    }
 
-    if (swapDelay > 0)
-    {
-        swapDelay -= framework.UpdateDelta.TotalSeconds;
-        if (swapDelay <= 0)
+        if (swapDelay > 0)
         {
-            Log.Information($"SwapDelay fired - level: {ObjectTable.LocalPlayer?.Level}, target: {Configuration.RequestedLevel}, queueIndex: {queueIndex}");
-            if (ObjectTable.LocalPlayer?.Level >= Configuration.RequestedLevel)
+            swapDelay -= framework.UpdateDelta.TotalSeconds;
+            if (swapDelay <= 0)
             {
-                queueIndex++;
-                Log.Information($"Level met, advancing queue to index: {queueIndex}");
-                if (queueIndex >= Configuration.GearsetNumbers.Count)
+                if (ObjectTable.LocalPlayer?.Level >= Configuration.RequestedLevel)
                 {
-                    AutoDutyIPC.SetConfig("StopLevel", "False");
-                    AutoDutyIPC.SetConfig("TerminationMethodEnum", "Do_Nothing");
-                    Configuration.IsRunning = false;
-                    Configuration.Save();
-                    return;
+                    queueIndex++;
+                    if (queueIndex >= Configuration.GearsetNumbers.Count)
+                    {
+                        AutoDutyIPC.SetConfig("StopLevel", "False");
+                        AutoDutyIPC.SetConfig("TerminationMethodEnum", "Do_Nothing");
+                        Configuration.IsRunning = false;
+                        Configuration.Save();
+                        return;
+                    }
+                    int gearset = Configuration.GearsetNumbers[queueIndex];
+                    unsafe
+                    {
+                        var gearsetModule = RaptureGearsetModule.Instance();
+                        gearsetModule->EquipGearset(gearset);
+                    }
+                    swapDelay = 5;
                 }
-                int gearset = Configuration.GearsetNumbers[queueIndex];
-                unsafe
+                else
                 {
-                    var gearsetModule = RaptureGearsetModule.Instance();
-                    gearsetModule->EquipGearset(gearset);
+                    startDelay = 5;        
                 }
-                swapDelay = 5;
             }
-            else
-            {
-                startDelay = 5;        
-            }
+            return;
         }
-        return;
+
+        timeSinceLastCheck += framework.UpdateDelta.TotalSeconds;
+        if (timeSinceLastCheck < 15) return;
+        timeSinceLastCheck = 0;
+
+        if (!AutoDutyIPC.IsStopped()) return;
+
+        int currentGearset = Configuration.GearsetNumbers[queueIndex];
+        unsafe
+        {
+            var gearsetModule = RaptureGearsetModule.Instance();
+            gearsetModule->EquipGearset(currentGearset);
+        }
+        swapDelay = 5;
     }
-
-    timeSinceLastCheck += framework.UpdateDelta.TotalSeconds;
-    if (timeSinceLastCheck < 15) return;
-    timeSinceLastCheck = 0;
-    Log.Information($"Timer fired - IsStopped: {AutoDutyIPC.IsStopped()}, queueIndex: {queueIndex}");
-
-    if (!AutoDutyIPC.IsStopped()) return;
-
-    int currentGearset = Configuration.GearsetNumbers[queueIndex];
-    Log.Information($"Initial equip - queueIndex: {queueIndex}, gearset: {currentGearset}");
-    unsafe
-    {
-        var gearsetModule = RaptureGearsetModule.Instance();
-        gearsetModule->EquipGearset(currentGearset);
-    }
-    swapDelay = 5;
-}
 
 }
