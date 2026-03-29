@@ -113,8 +113,10 @@ public sealed class Plugin : IDalamudPlugin
                 if (Configuration.EnableARMultiMode && queueIndex == Configuration.GearsetNumbers.Count - 1)
                     {
                         AutoDutyIPC.SetConfig("TerminationMethodEnum", "Start_AR_Multi_Mode");
+                        Configuration.IsRunning = false;
+                        Configuration.Save();
                     }
-                
+                AutoDutyIPC.Start(true);
                 AutoDutyIPC.SetConfig("LoopTimes", "99");
             }
             return;
@@ -130,10 +132,13 @@ public sealed class Plugin : IDalamudPlugin
                     queueIndex++;
                     if (queueIndex >= Configuration.GearsetNumbers.Count)
                     {
-                        AutoDutyIPC.SetConfig("StopLevel", "False");
                         AutoDutyIPC.SetConfig("TerminationMethodEnum", "Do_Nothing");
-                        Configuration.IsRunning = false;
-                        Configuration.Save();
+                        if (!Configuration.EnableARMultiMode) 
+                        {
+                            AutoDutyIPC.SetConfig("StopLevel", "False");
+                            Configuration.IsRunning = false;
+                            Configuration.Save();
+                        }
                         return;
                     }
                     int gearset = Configuration.GearsetNumbers[queueIndex];
