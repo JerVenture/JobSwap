@@ -95,6 +95,7 @@ public sealed class Plugin : IDalamudPlugin
         queueIndex = 0;
         timeSinceLastCheck = 14.5;
         Configuration.IsRunning = true;
+        AutoDutyIPC.SetConfig("TerminationMethodEnum", "Do_Nothing");
         Configuration.Save();
         swapDelay = 0;
         startDelay = 0;
@@ -147,11 +148,12 @@ public sealed class Plugin : IDalamudPlugin
                         var gearsetModule = RaptureGearsetModule.Instance();
                         gearsetModule->EquipGearset(gearset);
                     }
-                    swapDelay = 5;
+                    AutoDutyIPC.Stop();
+                    swapDelay = 10;
                 }
                 else
                 {
-                    startDelay = 5;        
+                    startDelay = 10;        
                 }
             }
             return;
@@ -169,7 +171,8 @@ public sealed class Plugin : IDalamudPlugin
             var gearsetModule = RaptureGearsetModule.Instance();
             gearsetModule->EquipGearset(currentGearset);
         }
-        swapDelay = 5;
+        AutoDutyIPC.Stop();
+        swapDelay = 10;
     }
 
 }
