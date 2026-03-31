@@ -7,7 +7,7 @@ public class AutoDutyIPC
 {
     public AutoDutyIPC()
     {
-        EzIPC.Init(this, "AutoDuty");
+        EzIPC.Init(this, "AutoDutyJerFork");
     }
 
     [EzIPC] public Action<bool> Start = null!;
