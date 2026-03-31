@@ -117,6 +117,7 @@ public sealed class Plugin : IDalamudPlugin
                         Configuration.IsRunning = false;
                         Configuration.Save();
                     }
+                AutoDutyIPC.SetLevelingMode(1);
                 AutoDutyIPC.Start(true);
                 AutoDutyIPC.SetConfig("LoopTimes", "99");
             }
@@ -149,6 +150,7 @@ public sealed class Plugin : IDalamudPlugin
                         gearsetModule->EquipGearset(gearset);
                     }
                     AutoDutyIPC.Stop();
+                    AutoDutyIPC.SetLevelingMode(0);
                     swapDelay = 10;
                 }
                 else
@@ -168,10 +170,12 @@ public sealed class Plugin : IDalamudPlugin
         int currentGearset = Configuration.GearsetNumbers[queueIndex];
         unsafe
         {
+            
             var gearsetModule = RaptureGearsetModule.Instance();
             gearsetModule->EquipGearset(currentGearset);
         }
         AutoDutyIPC.Stop();
+        AutoDutyIPC.SetLevelingMode(0);
         swapDelay = 10;
     }
 
